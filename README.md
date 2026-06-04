@@ -37,7 +37,7 @@ wrsync ./my_folder_or_file myvps:~/my_project_dir
 
 ---
 
-## Table of contents
+### Table of contents
 
 - [Features](#features)
 - [Requirements](#requirements)
@@ -56,7 +56,6 @@ wrsync ./my_folder_or_file myvps:~/my_project_dir
 - [Troubleshooting](#troubleshooting)
 - [License](#license)
 
----
 
 ## Features
 
@@ -73,7 +72,6 @@ wrsync ./my_folder_or_file myvps:~/my_project_dir
 - Follows the [XDG Base Directory](https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html)
   spec for config location.
 
----
 
 ## Requirements
 
@@ -90,7 +88,6 @@ sudo apt-get install rsync openssh-client
 `wrsync` checks for these dependencies at runtime and exits with a clear error
 if one is missing.
 
----
 
 ## Installation
 
@@ -114,7 +111,6 @@ if one is missing.
    wrsync --help
    ```
 
----
 
 ## Configuration
 
@@ -178,7 +174,6 @@ RSYNC_OPTS=--exclude=.git --exclude=node_modules
 SSH_OPTS=-o StrictHostKeyChecking=accept-new
 ```
 
----
 
 ## Usage
 
@@ -241,7 +236,6 @@ Send a single file:
 wrsync ./report.pdf myvps:~/documents
 ```
 
----
 
 ## How it works
 
@@ -272,7 +266,6 @@ config profile and passed to `rsync` via the `-e` option. Both the rsync and
 ssh command lines are built using Bash arrays, so paths and options are quoted
 safely.
 
----
 
 ## Security notes
 
@@ -293,7 +286,6 @@ safely.
   on first contact. For higher security, pre-populate `~/.ssh/known_hosts` and
   drop that option.
 
----
 
 ## Troubleshooting
 
@@ -310,7 +302,6 @@ safely.
 For more detail on any transfer, run with `--dry-run` first to see exactly what
 `rsync` would do.
 
----
 
 ## License
 
