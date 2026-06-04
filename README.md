@@ -9,10 +9,6 @@
 
 <div align="center">
 
-# `wrsync`
-
-**Push files & folders to any SSH box using named config profiles.**
-_No more typing host, port and key paths by hand. Set it once, ship forever._
 
 [![Shell](https://img.shields.io/badge/built%20with-Bash-1f425f?logo=gnubash&logoColor=white)](https://www.gnu.org/software/bash/)
 [![ShellCheck](https://img.shields.io/badge/lint-ShellCheck-brightgreen?logo=gnu&logoColor=white)](https://www.shellcheck.net/)
@@ -20,6 +16,9 @@ _No more typing host, port and key paths by hand. Set it once, ship forever._
 [![SSH](https://img.shields.io/badge/transport-OpenSSH-black?logo=openssh&logoColor=white)](https://www.openssh.com/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-yellow.svg)](LICENSE)
 [![Made with ♥](https://img.shields.io/badge/made%20with-%E2%99%A5%20%26%20%24%28%29-red)](#)
+
+**Push files & folders to any SSH box using named config profiles.**
+_No more typing host, port and key paths by hand. Set it once, ship forever._
 
 </div>
 
