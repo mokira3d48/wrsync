@@ -1,17 +1,17 @@
-# Exemple de config wrsync.
-# À copier dans : ~/.config/wrsync/monvps.conf  (chmod 600 recommandé)
+# Example wrsync config.
+# Copy it to: ~/.config/wrsync/myvps.conf  (chmod 600 recommended)
 
-# --- Obligatoire ---
-HOST=192.168.1.42          # IP ou hostname de la machine distante
-USER=arnold               # utilisateur SSH
+# --- Required ---
+HOST=192.168.1.42          # IP or hostname of the remote machine
+USER=arnold                # SSH username
 
-# --- Optionnel ---
-PORT=22                    # port SSH (défaut : 22)
-IDENTITY_FILE=~/.ssh/id_ed25519   # clé privée SSH à utiliser
+# --- Optional ---
+PORT=22                    # SSH port (default: 22)
+IDENTITY_FILE=~/.ssh/id_ed25519   # SSH private key to use
 
-# Options additionnelles passées telles quelles à rsync.
-# Exemple : exclure des fichiers / supprimer côté distant les fichiers absents.
+# Extra options forwarded verbatim to rsync.
+# Example: exclude files / delete remote files that no longer exist locally.
 RSYNC_OPTS=--exclude=.git --exclude=node_modules
 
-# Options additionnelles passées à ssh.
+# Extra options forwarded to ssh.
 SSH_OPTS=-o StrictHostKeyChecking=accept-new

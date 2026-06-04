@@ -1,4 +1,29 @@
-# wrsync
+<div align="center">
+
+```text
+                                     ____
+ _      ______________  ______  _____\   \
+| | /| / / ___/ ___/ / / / __ \/ ___/_   _|   >_ rsync over SSH,
+| |/ |/ / /  (__  ) /_/ / / / / /__  | |          minus the boilerplate.
+|__/|__/_/  /____/\__, /_/ /_/\___/  |_|
+                 /____/                            ~$ wrsync ./code box:~/app
+```
+
+# `wrsync`
+
+**Push files & folders to any SSH box using named config profiles.**
+_No more typing host, port and key paths by hand. Set it once, ship forever._
+
+[![Shell](https://img.shields.io/badge/built%20with-Bash-1f425f?logo=gnubash&logoColor=white)](https://www.gnu.org/software/bash/)
+[![ShellCheck](https://img.shields.io/badge/lint-ShellCheck-brightgreen?logo=gnu&logoColor=white)](https://www.shellcheck.net/)
+[![Powered by rsync](https://img.shields.io/badge/powered%20by-rsync-blue)](https://rsync.samba.org/)
+[![SSH](https://img.shields.io/badge/transport-OpenSSH-black?logo=openssh&logoColor=white)](https://www.openssh.com/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-yellow.svg)](LICENSE)
+[![Made with ♥](https://img.shields.io/badge/made%20with-%E2%99%A5%20%26%20%24%28%29-red)](#)
+
+</div>
+
+---
 
 A small, production-grade Bash wrapper around [`rsync`](https://rsync.samba.org/)
 that lets you push files and folders to an SSH server using **named
@@ -274,15 +299,15 @@ safely.
 
 ## Troubleshooting
 
-| Message                                         | Cause / fix                                                              |
-|-------------------------------------------------|--------------------------------------------------------------------------|
-| `Dépendance manquante : 'rsync'…`               | Install `rsync` / `openssh-client`.                                      |
-| `Fichier de config introuvable : …`             | The profile `<remote>.conf` does not exist in `~/.config/wrsync/`.       |
-| `'HOST' manquant` / `'USER' manquant`           | Add the required keys to your config file.                               |
-| `PORT invalide`                                 | `PORT` must be an integer between 1 and 65535.                           |
-| `Clé SSH introuvable ou illisible`              | Check the `IDENTITY_FILE` path and its read permissions.                 |
-| `Cible invalide … format attendu`               | The target must be `<remote>:<remote_path>` (a colon is required).       |
-| `Source introuvable`                            | The local `<source>` path does not exist.                               |
+| Message                                          | Cause / fix                                                              |
+|--------------------------------------------------|--------------------------------------------------------------------------|
+| `Missing dependency: 'rsync'…`                   | Install `rsync` / `openssh-client`.                                      |
+| `Config file not found: …`                       | The profile `<remote>.conf` does not exist in `~/.config/wrsync/`.       |
+| `'HOST' is missing` / `'USER' is missing`        | Add the required keys to your config file.                               |
+| `Invalid PORT…`                                  | `PORT` must be an integer between 1 and 65535.                           |
+| `SSH key not found or not readable`              | Check the `IDENTITY_FILE` path and its read permissions.                 |
+| `Invalid target … expected format`               | The target must be `<remote>:<remote_path>` (a colon is required).       |
+| `Source not found`                               | The local `<source>` path does not exist.                               |
 
 For more detail on any transfer, run with `--dry-run` first to see exactly what
 `rsync` would do.
