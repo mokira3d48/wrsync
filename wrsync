@@ -1,0 +1,261 @@
+#!/usr/bin/env bash
+#
+# wrsync — wrapper rsync pour envoyer fichiers/dossiers vers un serveur SSH
+#          en se basant sur un fichier de configuration nommé.
+#
+# Usage:
+#   wrsync <source> <remote>:<chemin_distant>
+#
+# Exemple:
+#   wrsync ./mon_dossier monvps:~/mondossierdeprojet
+#   wrsync ./mon_fichier monvps:/opt/mondossierdeprojet
+#
+# Le fichier de config est cherché dans :
+#   ${XDG_CONFIG_HOME:-$HOME/.config}/wrsync/<remote>.conf
+#
+# Clés de config supportées (format KEY=value) :
+#   HOST           (obligatoire)  IP ou hostname de la machine distante
+#   USER           (obligatoire)  nom d'utilisateur SSH
+#   PORT           (optionnel)    port SSH, défaut 22
+#   IDENTITY_FILE  (optionnel)    chemin vers la clé privée SSH
+#   RSYNC_OPTS     (optionnel)    options rsync additionnelles
+#   SSH_OPTS       (optionnel)    options ssh additionnelles
+
+set -o errexit
+set -o nounset
+set -o pipefail
+
+# --------------------------------------------------------------------------- #
+# Constantes
+# --------------------------------------------------------------------------- #
+readonly PROGNAME="${0##*/}"
+readonly CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/wrsync"
+
+# --------------------------------------------------------------------------- #
+# Fonctions utilitaires d'affichage
+# --------------------------------------------------------------------------- #
+
+# Sortie sur stderr, préfixée, avec couleur si on est dans un terminal.
+_log() {
+    local level="$1"; shift
+    local color="" reset=""
+    if [[ -t 2 ]]; then
+        reset=$'\033[0m'
+        case "$level" in
+            ERROR) color=$'\033[0;31m' ;;
+            WARN)  color=$'\033[0;33m' ;;
+            INFO)  color=$'\033[0;32m' ;;
+        esac
+    fi
+    printf '%s%s:%s %s\n' "$color" "$level" "$reset" "$*" >&2
+}
+
+err()  { _log ERROR "$@"; }
+warn() { _log WARN  "$@"; }
+info() { _log INFO  "$@"; }
+
+# Affiche un message d'erreur puis quitte avec le code fourni (défaut 1).
+die() {
+    local code=1
+    if [[ "$1" =~ ^[0-9]+$ ]]; then
+        code="$1"; shift
+    fi
+    err "$@"
+    exit "$code"
+}
+
+usage() {
+    cat <<EOF
+Usage: $PROGNAME <source> <remote>:<chemin_distant>
+
+Envoie un fichier ou un dossier vers un serveur SSH via rsync, en utilisant
+un fichier de configuration nommé.
+
+Arguments:
+  <source>                 Fichier ou dossier local à envoyer.
+  <remote>:<chemin>        Cible : nom de la config et chemin distant.
+
+Options:
+  -n, --dry-run            Simule le transfert sans rien copier.
+  -h, --help               Affiche cette aide.
+
+Le fichier de config doit se trouver dans :
+  $CONFIG_DIR/<remote>.conf
+
+Exemples:
+  $PROGNAME ./mon_dossier monvps:~/mondossierdeprojet
+  $PROGNAME ./mon_fichier monvps:/opt/mondossierdeprojet
+EOF
+}
+
+# --------------------------------------------------------------------------- #
+# Vérification des dépendances
+# --------------------------------------------------------------------------- #
+check_dependencies() {
+    local dep
+    for dep in rsync ssh; do
+        command -v "$dep" >/dev/null 2>&1 \
+            || die "Dépendance manquante : '$dep' n'est pas installé."
+    done
+}
+
+# --------------------------------------------------------------------------- #
+# Chargement et validation du fichier de config
+# --------------------------------------------------------------------------- #
+# On lit le fichier ligne à ligne (pas de `source`) pour éviter d'exécuter du
+# code arbitraire et pour contrôler strictement les clés acceptées.
+
+# Variables de config (remplies par load_config).
+CFG_HOST=""
+CFG_USER=""
+CFG_PORT="22"
+CFG_IDENTITY_FILE=""
+CFG_RSYNC_OPTS=""
+CFG_SSH_OPTS=""
+
+load_config() {
+    local remote="$1"
+    local config_file="$CONFIG_DIR/${remote}.conf"
+
+    [[ -f "$config_file" ]] \
+        || die "Fichier de config introuvable : $config_file"
+
+    # Avertir si les permissions sont trop ouvertes (peut contenir des secrets).
+    if [[ -n "$(find "$config_file" -perm /0077 2>/dev/null)" ]]; then
+        warn "Permissions trop permissives sur $config_file (recommandé : chmod 600)."
+    fi
+
+    local lineno=0 line key value
+    while IFS= read -r line || [[ -n "$line" ]]; do
+        lineno=$((lineno + 1))
+
+        # Ignorer commentaires et lignes vides.
+        line="${line%%#*}"
+        line="${line#"${line%%[![:space:]]*}"}"   # trim début
+        line="${line%"${line##*[![:space:]]}"}"   # trim fin
+        [[ -z "$line" ]] && continue
+
+        if [[ "$line" != *=* ]]; then
+            die "Ligne $lineno invalide dans $config_file : '$line'"
+        fi
+
+        key="${line%%=*}"
+        value="${line#*=}"
+        # Trim espaces autour de la clé et de la valeur.
+        key="${key// /}"
+        value="${value#"${value%%[![:space:]]*}"}"
+        value="${value%"${value##*[![:space:]]}"}"
+        # Retirer d'éventuels guillemets entourants.
+        value="${value%\"}"; value="${value#\"}"
+        value="${value%\'}"; value="${value#\'}"
+
+        case "$key" in
+            HOST)          CFG_HOST="$value" ;;
+            USER)          CFG_USER="$value" ;;
+            PORT)          CFG_PORT="$value" ;;
+            IDENTITY_FILE) CFG_IDENTITY_FILE="${value/#\~/$HOME}" ;;
+            RSYNC_OPTS)    CFG_RSYNC_OPTS="$value" ;;
+            SSH_OPTS)      CFG_SSH_OPTS="$value" ;;
+            *) warn "Clé inconnue ignorée (ligne $lineno) : '$key'" ;;
+        esac
+    done < "$config_file"
+
+    # Validation des champs obligatoires.
+    [[ -n "$CFG_HOST" ]] || die "'HOST' manquant dans $config_file"
+    [[ -n "$CFG_USER" ]] || die "'USER' manquant dans $config_file"
+
+    if ! [[ "$CFG_PORT" =~ ^[0-9]+$ ]] || (( CFG_PORT < 1 || CFG_PORT > 65535 )); then
+        die "PORT invalide dans $config_file : '$CFG_PORT'"
+    fi
+
+    if [[ -n "$CFG_IDENTITY_FILE" && ! -r "$CFG_IDENTITY_FILE" ]]; then
+        die "Clé SSH introuvable ou illisible : $CFG_IDENTITY_FILE"
+    fi
+}
+
+# --------------------------------------------------------------------------- #
+# Programme principal
+# --------------------------------------------------------------------------- #
+main() {
+    local dry_run=0
+    local -a positional=()
+
+    # Parsing des arguments.
+    while (( $# > 0 )); do
+        case "$1" in
+            -h|--help)    usage; exit 0 ;;
+            -n|--dry-run) dry_run=1; shift ;;
+            --)           shift; while (( $# > 0 )); do positional+=("$1"); shift; done ;;
+            -*)           die "Option inconnue : $1 (voir '$PROGNAME --help')" ;;
+            *)            positional+=("$1"); shift ;;
+        esac
+    done
+
+    if (( ${#positional[@]} != 2 )); then
+        usage >&2
+        die "Nombre d'arguments incorrect : 2 attendus, ${#positional[@]} reçu(s)."
+    fi
+
+    local source="${positional[0]}"
+    local target="${positional[1]}"
+
+    check_dependencies
+
+    # La source doit exister localement.
+    [[ -e "$source" ]] || die "Source introuvable : $source"
+
+    # La cible doit avoir la forme <remote>:<chemin>.
+    if [[ "$target" != *:* ]]; then
+        die "Cible invalide : '$target' (format attendu : <remote>:<chemin_distant>)"
+    fi
+    local remote="${target%%:*}"
+    local remote_path="${target#*:}"
+
+    [[ -n "$remote" ]]      || die "Nom de remote vide dans la cible '$target'."
+    [[ -n "$remote_path" ]] || die "Chemin distant vide dans la cible '$target'."
+
+    load_config "$remote"
+
+    # Construction de la commande SSH transport.
+    local -a ssh_cmd=(ssh -p "$CFG_PORT")
+    [[ -n "$CFG_IDENTITY_FILE" ]] && ssh_cmd+=(-i "$CFG_IDENTITY_FILE")
+    if [[ -n "$CFG_SSH_OPTS" ]]; then
+        # shellcheck disable=SC2206  # découpage en mots voulu pour les options.
+        local -a extra_ssh=($CFG_SSH_OPTS)
+        ssh_cmd+=("${extra_ssh[@]}")
+    fi
+
+    # Construction des options rsync.
+    local -a rsync_opts=(
+        --archive          # -a : récursif + préserve perms, dates, liens, etc.
+        --compress         # -z : compression durant le transfert.
+        --human-readable   # tailles lisibles.
+        --partial          # reprend les transferts interrompus.
+        --progress         # affiche la progression.
+    )
+    (( dry_run )) && rsync_opts+=(--dry-run)
+
+    if [[ -n "$CFG_RSYNC_OPTS" ]]; then
+        # shellcheck disable=SC2206  # découpage en mots voulu pour les options.
+        local -a extra_rsync=($CFG_RSYNC_OPTS)
+        rsync_opts+=("${extra_rsync[@]}")
+    fi
+
+    # Normalisation de la source : si c'est un dossier, on retire un éventuel
+    # slash final pour copier le dossier lui-même (et non seulement son contenu).
+    if [[ -d "$source" ]]; then
+        source="${source%/}"
+    fi
+
+    local destination="${CFG_USER}@${CFG_HOST}:${remote_path}"
+
+    info "Transfert : $source -> $destination (port $CFG_PORT)"
+    (( dry_run )) && warn "Mode simulation (--dry-run) : aucun fichier ne sera copié."
+
+    # Exécution. -e passe le transport SSH complet à rsync.
+    rsync "${rsync_opts[@]}" -e "${ssh_cmd[*]}" -- "$source" "$destination"
+
+    info "Terminé avec succès."
+}
+
+main "$@"
