@@ -1,5 +1,3 @@
-<div align="center">
-
 ```text
                                      ____
  _      ______________  ______  _____\   \
@@ -8,6 +6,8 @@
 |__/|__/_/  /____/\__, /_/ /_/\___/  |_|
                  /____/                            ~$ wrsync ./code box:~/app
 ```
+
+<div align="center">
 
 # `wrsync`
 
@@ -23,7 +23,6 @@ _No more typing host, port and key paths by hand. Set it once, ship forever._
 
 </div>
 
----
 
 A small, production-grade Bash wrapper around [`rsync`](https://rsync.samba.org/)
 that lets you push files and folders to an SSH server using **named
