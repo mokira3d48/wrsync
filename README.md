@@ -20,6 +20,7 @@
 **Push files & folders to any SSH box using named config profiles.**
 _No more typing host, port and key paths by hand. Set it once, ship forever._
 
+
 </div>
 
 
@@ -31,9 +32,10 @@ Instead of typing long `rsync`/`ssh` command lines with hosts, ports and key
 paths every time, you store each server's settings once in a config file and
 refer to it by name:
 
-```bash
-wrsync ./my_folder_or_file myvps:~/my_project_dir
-```
+<div align="center">
+    <img src="assets/banner.png" alt="wrsync — rsync over SSH, minus the boilerplate" width="100%">
+</div>
+
 
 ---
 

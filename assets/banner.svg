@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="640" viewBox="0 0 1280 640" font-family="'JetBrains Mono','Fira Code','SF Mono',Menlo,Consolas,monospace">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0d1117"/>
+      <stop offset="1" stop-color="#161b29"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#38bdf8"/>
+      <stop offset="1" stop-color="#22d3ee"/>
+    </linearGradient>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="6" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <!-- background -->
+  <rect width="1280" height="640" fill="url(#bg)"/>
+
+  <!-- subtle grid -->
+  <g stroke="#1f2937" stroke-width="1" opacity="0.5">
+    <path d="M0 160H1280M0 320H1280M0 480H1280"/>
+    <path d="M320 0V640M640 0V640M960 0V640"/>
+  </g>
+
+  <!-- title -->
+  <text x="640" y="120" text-anchor="middle" font-size="92" font-weight="700" fill="#e6edf3">
+    w<tspan fill="url(#accent)">rsync</tspan>
+  </text>
+  <text x="640" y="168" text-anchor="middle" font-size="24" fill="#8b949e" letter-spacing="2">
+    rsync over SSH, minus the boilerplate
+  </text>
+
+  <!-- terminal window -->
+  <g transform="translate(190,230)">
+    <rect width="900" height="320" rx="14" fill="#0b0f17" stroke="#30363d" stroke-width="1.5"/>
+    <!-- title bar -->
+    <rect width="900" height="44" rx="14" fill="#161b22"/>
+    <rect y="22" width="900" height="22" fill="#161b22"/>
+    <circle cx="28" cy="22" r="7" fill="#ff5f56"/>
+    <circle cx="52" cy="22" r="7" fill="#ffbd2e"/>
+    <circle cx="76" cy="22" r="7" fill="#27c93f"/>
+    <text x="450" y="28" text-anchor="middle" font-size="15" fill="#6e7681">~/projects — wrsync</text>
+
+    <!-- terminal body -->
+    <g font-size="22">
+      <text x="34" y="100" fill="#7ee787">$</text>
+      <text x="60" y="100" fill="#e6edf3">wrsync <tspan fill="#79c0ff">./app</tspan> <tspan fill="#ffa657" dx="6">monvps</tspan>:<tspan fill="#d2a8ff">/opt/app</tspan></text>
+
+      <text x="34" y="150" fill="#58a6ff">INFO:</text>
+      <text x="110" y="150" fill="#8b949e">Transfer: app -&gt; drmokira@vps:/opt/app (port 22)</text>
+
+      <text x="34" y="190" fill="#8b949e">sending incremental file list</text>
+      <text x="34" y="222" fill="#c9d1d9">app/</text>
+      <text x="130" y="222" fill="#7ee787">100%</text>
+      <text x="220" y="222" fill="#8b949e">12.4MB/s   0:00:03</text>
+
+      <!-- progress bar -->
+      <rect x="34" y="240" width="640" height="14" rx="7" fill="#21262d"/>
+      <rect x="34" y="240" width="640" height="14" rx="7" fill="url(#accent)" filter="url(#glow)"/>
+
+      <text x="34" y="294" fill="#7ee787">INFO:</text>
+      <text x="110" y="294" fill="#e6edf3">Done successfully. ✓</text>
+    </g>
+  </g>
+
+  <!-- footer badges -->
+  <g font-size="18" fill="#8b949e">
+    <text x="640" y="600" text-anchor="middle">
+      Bash · rsync · OpenSSH · named profiles · MIT · ShellCheck-clean
+    </text>
+  </g>
+</svg>
