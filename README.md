@@ -33,7 +33,7 @@ paths every time, you store each server's settings once in a config file and
 refer to it by name:
 
 <div align="center">
-    <img src="assets/banner.png" alt="wrsync — rsync over SSH, minus the boilerplate" width="100%">
+  <img src="assets/banner.png" alt="wrsync — rsync over SSH, minus the boilerplate" width="100%">
 </div>
 
 
