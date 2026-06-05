@@ -45,7 +45,7 @@
     <!-- terminal body -->
     <g font-size="22">
       <text x="34" y="100" fill="#7ee787">$</text>
-      <text x="60" y="100" fill="#e6edf3">wrsync <tspan fill="#79c0ff">./app</tspan> <tspan fill="#ffa657" dx="6">monvps</tspan>:<tspan fill="#d2a8ff">/opt/app</tspan></text>
+      <text x="60" y="100" fill="#e6edf3">wrsync <tspan fill="#79c0ff">./app</tspan> <tspan fill="#ffa657" dx="20">monvps</tspan>:<tspan fill="#d2a8ff">/opt/app</tspan></text>
 
       <text x="34" y="150" fill="#58a6ff">INFO:</text>
       <text x="110" y="150" fill="#8b949e">Transfer: app -&gt; drmokira@vps:/opt/app (port 22)</text>
